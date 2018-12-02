@@ -150,6 +150,10 @@ QuillCursors.prototype._buildCursor = function(userId, name) {
   flagEl.style.backgroundColor = cursor.color;
   caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = cursor.color;
 
+  this.quill.root.addEventListener('scroll', () => {
+    caretEl.style.marginTop = `${-1 * this.quill.root.scrollTop}px`;
+  });
+
   el.querySelector('.ql-cursor-name').innerText = name;
 
   // Set flag delay, speed
@@ -237,7 +241,7 @@ QuillCursors.prototype._updateCaret = function(cursor, leaf) {
 };
 
 QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect) {
-  function createSelectionBlock(rect) {
+  const createSelectionBlock = (rect) => {
     var selectionBlockEl = document.createElement('span');
 
     selectionBlockEl.classList.add('ql-cursor-selection-block');
@@ -247,6 +251,10 @@ QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect)
     selectionBlockEl.style.height = rect.height + 'px';
     selectionBlockEl.style.backgroundColor = tinycolor(cursor.color).setAlpha(0.3).toString();
 
+    this.quill.root.addEventListener('scroll', () => {
+      selectionBlockEl.style.marginTop = `${-1 * this.quill.root.scrollTop}px`;
+    });
+    
     return selectionBlockEl;
   }
 
