@@ -21,6 +21,7 @@ function QuillCursors(quill, options) {
   this.quill = quill;
   this._initOptions(options);
   this.cursors = {};
+  this.currScrollTop = this.quill.root.scrollTop;
   this.container = this.quill.addContainer('ql-cursors');
 
   if (this.options.autoRegisterListener)
@@ -150,6 +151,11 @@ QuillCursors.prototype._buildCursor = function(userId, name) {
   flagEl.style.backgroundColor = cursor.color;
   caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = cursor.color;
 
+  this.quill.root.addEventListener('scroll', () => {
+    flagEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+    caretEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+  });
+
   el.querySelector('.ql-cursor-name').innerText = name;
 
   // Set flag delay, speed
@@ -231,13 +237,15 @@ QuillCursors.prototype._updateCaret = function(cursor, leaf) {
   cursor.caretEl.style.top = (rect.top) + 'px';
   cursor.caretEl.style.left = (rect.left) + 'px';
   cursor.caretEl.style.height = rect.height + 'px';
+  cursor.caretEl.style.marginTop = '0px';
 
   cursor.flagEl.style.top = (rect.top) + 'px';
   cursor.flagEl.style.left = (rect.left) + 'px';
+  cursor.flagEl.style.marginTop = '0px';
 };
 
 QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect) {
-  function createSelectionBlock(rect) {
+  const createSelectionBlock = (rect) => {
     var selectionBlockEl = document.createElement('span');
 
     selectionBlockEl.classList.add('ql-cursor-selection-block');
@@ -247,8 +255,14 @@ QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect)
     selectionBlockEl.style.height = rect.height + 'px';
     selectionBlockEl.style.backgroundColor = tinycolor(cursor.color).setAlpha(0.3).toString();
 
+    this.currScrollTop = this.quill.root.scrollTop;
+
+    this.quill.root.addEventListener('scroll', () => {
+      selectionBlockEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+    });
+
     return selectionBlockEl;
-  }
+  };
 
   // Wipe the slate clean
   cursor.selectionEl.innerHTML = null;
