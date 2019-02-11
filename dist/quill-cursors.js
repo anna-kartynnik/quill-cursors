@@ -219,6 +219,23 @@ QuillCursors.prototype._applyDelta = function(delta) {
   this.update();
 };
 
+QuillCursors.prototype._handleScroll = function(element) {
+  if (!element || !element.style || !element.style.top ||
+    !element.style.height) {
+    return;
+  }
+  element.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+  if ((parseInt(element.style.top) < (this.quill.root.scrollTop - this.currScrollTop)) ||
+    (parseInt(element.style.top) + parseInt(element.style.height) +
+      this.currScrollTop - this.quill.root.scrollTop >
+      this.quill.container.getBoundingClientRect().height)) {
+    // element is outside from container boundaries
+    element.classList.add('hidden');
+  } else {
+    element.classList.remove('hidden');
+  }  
+};
+
 QuillCursors.prototype._buildCursor = function(userId, name) {
   var cursor = this.cursors[userId];
   var el = document.createElement('span');
@@ -237,8 +254,8 @@ QuillCursors.prototype._buildCursor = function(userId, name) {
   caretEl.querySelector('.ql-cursor-caret').style.backgroundColor = cursor.color;
 
   this.quill.root.addEventListener('scroll', () => {
-    flagEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
-    caretEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+    this._handleScroll(flagEl);
+    this._handleScroll(caretEl);
   });
 
   el.querySelector('.ql-cursor-name').innerText = name;
@@ -327,6 +344,7 @@ QuillCursors.prototype._updateCaret = function(cursor, leaf) {
   cursor.flagEl.style.top = (rect.top) + 'px';
   cursor.flagEl.style.left = (rect.left) + 'px';
   cursor.flagEl.style.marginTop = '0px';
+  this.currScrollTop = this.quill.root.scrollTop;
 };
 
 QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect) {
@@ -343,7 +361,7 @@ QuillCursors.prototype._updateSelection = function(cursor, rects, containerRect)
     this.currScrollTop = this.quill.root.scrollTop;
 
     this.quill.root.addEventListener('scroll', () => {
-      selectionBlockEl.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+      this._handleScroll(selectionBlockEl);
     });
 
     return selectionBlockEl;
