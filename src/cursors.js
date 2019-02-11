@@ -139,7 +139,7 @@ QuillCursors.prototype._handleScroll = function(element) {
     !element.style.height) {
     return;
   }
-  element.style.marginTop = `${this.currScrollTop - this.quill.root.scrollTop}px`;
+  element.style.marginTop = (this.currScrollTop - this.quill.root.scrollTop) + 'px';
   if ((parseInt(element.style.top) < (this.quill.root.scrollTop - this.currScrollTop)) ||
     (parseInt(element.style.top) + parseInt(element.style.height) +
       this.currScrollTop - this.quill.root.scrollTop >
