@@ -42,7 +42,20 @@ QuillCursors.prototype.moveCursor = function(userId, range) {
   var cursor = this.cursors[userId];
   if (cursor) {
     cursor.range = range;
-    cursor.el.classList.remove('hidden');
+    var containerRect = this.quill.container.getBoundingClientRect();
+    var cursorIndexBounds = this.quill.getBounds(cursor.range.index);
+    if ((cursorIndexBounds.top < this.quill.root.scrollTop - this.currScrollTop) ||
+      (cursorIndexBounds.top + cursorIndexBounds.height + this.currScrollTop -
+        this.quill.root.scrollTop > containerRect.height)) {
+      // This cursor is out of visible region, hide it.
+      cursor.caretEl.classList.add('hidden');
+      cursor.flagEl.classList.add('hidden');
+      cursor.el.classList.add('hidden');
+    } else {
+      cursor.el.classList.remove('hidden');
+      cursor.flagEl.classList.remove('hidden');
+      cursor.el.classList.remove('hidden');      
+    }
     this._updateCursor(cursor);
     // TODO Implement cursor hiding timeout like 0.20/benbro?
   }
@@ -111,7 +124,10 @@ QuillCursors.prototype._initOptions = function(options) {
   this.options.hideSpeed = (options.hideSpeed == undefined) ? this.options.hideSpeed : options.hideSpeed;
 };
 
-QuillCursors.prototype._applyDelta = function(delta) {
+QuillCursors.prototype._applyDelta = function(delta, oldDelta, source) {
+  if (source !== 'user') {
+    return;
+  }  
   var index = 0;
 
   delta.ops.forEach(function(op) {
@@ -172,6 +188,7 @@ QuillCursors.prototype._buildCursor = function(userId, name) {
   this.quill.root.addEventListener('scroll', function() {
     self._handleScroll(flagEl);
     self._handleScroll(caretEl);
+    self._handleScroll(el);
   });
 
   el.querySelector('.ql-cursor-name').innerText = name;
