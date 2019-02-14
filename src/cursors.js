@@ -42,22 +42,25 @@ QuillCursors.prototype.moveCursor = function(userId, range) {
   var cursor = this.cursors[userId];
   if (cursor) {
     cursor.range = range;
-    var containerRect = this.quill.container.getBoundingClientRect();
-    var cursorIndexBounds = this.quill.getBounds(cursor.range.index);
-    if ((cursorIndexBounds.top < this.quill.root.scrollTop - this.currScrollTop) ||
-      (cursorIndexBounds.top + cursorIndexBounds.height + this.currScrollTop -
-        this.quill.root.scrollTop > containerRect.height)) {
-      // This cursor is out of visible region, hide it.
-      cursor.caretEl.classList.add('hidden');
-      cursor.flagEl.classList.add('hidden');
-      cursor.el.classList.add('hidden');
-    } else {
+    try {
       cursor.el.classList.remove('hidden');
       cursor.flagEl.classList.remove('hidden');
-      cursor.el.classList.remove('hidden');      
+      cursor.el.classList.remove('hidden');       
+      var containerRect = this.quill.container.getBoundingClientRect();
+      var cursorIndexBounds = this.quill.getBounds(cursor.range.index);
+      if ((cursorIndexBounds.top < this.quill.root.scrollTop - this.currScrollTop) ||
+        (cursorIndexBounds.top + cursorIndexBounds.height + this.currScrollTop -
+          this.quill.root.scrollTop > containerRect.height)) {
+        // This cursor is out of visible region, hide it.
+        cursor.caretEl.classList.add('hidden');
+        cursor.flagEl.classList.add('hidden');
+        cursor.el.classList.add('hidden');
+      }
+      this._updateCursor(cursor);
+      // TODO Implement cursor hiding timeout like 0.20/benbro?
+    } catch (err) {
+      console.warn('[quill-cursors] Error while moving a cursor (ID ' + cursor.userId +').', err);
     }
-    this._updateCursor(cursor);
-    // TODO Implement cursor hiding timeout like 0.20/benbro?
   }
 };
 
